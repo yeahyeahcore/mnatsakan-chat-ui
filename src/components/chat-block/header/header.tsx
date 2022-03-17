@@ -1,3 +1,7 @@
+import { useState } from 'react';
+
+import { ChatSettingsPopupMenu } from '../chat-settings-popup-menu';
+
 import './header.css';
 
 type HeaderArgs = {
@@ -5,27 +9,25 @@ type HeaderArgs = {
   onlineStatus: string;
 };
 
-export const Header = ({ name, onlineStatus }: HeaderArgs): JSX.Element => (
-  <header className='chat-header'>
-    <div className='user-information-block'>
-      <p className='username'>{name}</p>
-      <p className='online-status'>{onlineStatus}</p>
-    </div>
+export const Header = ({ name, onlineStatus }: HeaderArgs): JSX.Element => {
+  const [isMenuVisible, setIsMenuVisible] = useState(false);
 
-    <div className='chat-menu-block'>
-      <button type='button' className='chat-menu-button'>
+  const onShowMenu = () => {
+    setIsMenuVisible(!isMenuVisible);
+  };
+
+  return (
+    <header className='chat-header'>
+      <div className='user-information-block'>
+        <p className='username'>{name}</p>
+        <p className='online-status'>{onlineStatus}</p>
+      </div>
+
+      <button type='button' className='chat-menu-button' onClick={onShowMenu}>
         <span />
       </button>
 
-      {
-        // В будущем будет реализация меню через хуки
-        /* 
-        <menu className='chat-menu'>
-          <li>Меню 1</li>
-          <li>Меню 2</li>
-          <li>Меню 3</li>
-        </menu> */
-      }
-    </div>
-  </header>
-);
+      {isMenuVisible && <ChatSettingsPopupMenu setVisible={setIsMenuVisible} />}
+    </header>
+  );
+};
