@@ -1,21 +1,35 @@
 import { useState, useEffect } from 'react';
-import { onAuthStateChanged, signInAnonymously } from 'firebase/auth';
+import { onAuthStateChanged } from 'firebase/auth';
+import { doc, getDoc, DocumentReference } from 'firebase/firestore';
 
-import { firebaseAuth } from '../firebase';
+import { firebaseAuth, firebaseStore } from '../firebase';
 
-export const useAuth = (): string | undefined => {
-  const [userId, setUserId] = useState<string>();
+import type { UserInformation } from '../types/user-information';
+
+type UseAuth = {
+  userInformation: UserInformation | undefined;
+  isLoading: boolean;
+};
+
+export const useAuth = (): UseAuth => {
+  const [userInformation, setUserInformation] = useState<UserInformation>();
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    signInAnonymously(firebaseAuth);
-    onAuthStateChanged(firebaseAuth, (user) => {
+    const unsubscribe = onAuthStateChanged(firebaseAuth, (user) => {
       if (!user) {
+        setUserInformation(undefined);
+        setIsLoading(false);
         return;
       }
 
-      setUserId(user.uid);
+      getDoc(doc(firebaseStore, 'users', user.uid) as DocumentReference<UserInformation>)
+        .then((userDocument) => setUserInformation(userDocument.data()))
+        .finally(() => setIsLoading(false));
     });
+
+    return () => unsubscribe();
   }, []);
 
-  return userId;
+  return { userInformation, isLoading };
 };
